@@ -43,7 +43,6 @@ runs:
       with:
         app-id: ${{ inputs.app_id }}
         private-key: ${{ inputs.private_key }}
-        owner: ${{ github.repository_owner }}
   
     - name: Add to project
       if: steps.check-if-should-add.outputs.should_add_to_project == 'true'
