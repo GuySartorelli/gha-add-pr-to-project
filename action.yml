@@ -1,12 +1,21 @@
 name: Add pull request to project
 description: GitHub Action to add new pull requests to the Community Contributions GitHub project
 
+inputs:
+  app_id:
+    description: 'The ID for a GitHub App, used to generate a token'
+    required: true
+  private_key:
+    description: 'The private key for a GitHub App, used to generate a token'
+    required: true
+
 runs:
   using: composite
   steps:
 
     - name: Check if should be added
       id: check-if-should-add
+      shell: bash
       env:
         PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         IS_DRAFT: ${{ github.event.pull_request.draft }}
@@ -18,7 +27,7 @@ runs:
         fi
         # We don't want CMS Squad member PRs to clutter the project board
         echo "Author is $PR_AUTHOR"
-        for squad_member in 'GuySartorelli' 'emteknetnz' 'maxime-rainville'; do
+        for squad_member in 'NotGuySartorelli' 'emteknetnz' 'maxime-rainville'; do
           if [[ $PR_AUTHOR == $squad_member ]]; then
             echo "Author is in CMS Squad. Skipping."
             echo "should_add_to_project=false" >> $GITHUB_OUTPUT
@@ -29,16 +38,16 @@ runs:
 
     - name: Generate token
       id: generate-token
-      if: steps.check-if-should-add.outputs.should_add_to_project == 'true' && github.repository_owner == 'silverstripe'
+      if: steps.check-if-should-add.outputs.should_add_to_project == 'true'
       uses: actions/create-github-app-token@v1
       with:
-        app-id: ${{ vars.PROJECT_PERMISSIONS_APP_ID }}
-        private-key: ${{ secrets.PROJECT_PERMISSIONS_APP_PRIVATE_KEY }}
+        app-id: ${{ inputs.app_id }}
+        private-key: ${{ inputs.private_key }}
   
     - name: Add to project
       if: steps.check-if-should-add.outputs.should_add_to_project == 'true'
       uses: actions/add-to-project@v1.0.1
       with:
-        # Add to the Community Contributions project
-        project-url: https://github.com/orgs/silverstripe/projects/4
+        # Add to my test project
+        project-url: https://github.com/users/GuySartorelli/projects/1
         github-token: ${{ steps.generate-token.outputs.token }}
